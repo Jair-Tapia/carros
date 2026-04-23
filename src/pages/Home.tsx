@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import AutoForm from "../components/AutoForm"
 import AutoList from "../components/AutoList"
-import { getAutos, saveAutos } from "../services/localStorage"
+import { supabase } from "../services/supabase"
 import "../styles.css"
 
 type Auto = {
@@ -19,18 +19,27 @@ function Home() {
   const [autos, setAutos] = useState<Auto[]>([])
 
   useEffect(() => {
-    setAutos(getAutos())
-  }, [])
+    const fetchAutos = async () => {
+      const { data, error } = await supabase
+        .from("autos")
+        .select("*")
 
-  useEffect(() => {
-    saveAutos(autos)
-  }, [autos])
+      if (error) {
+        console.log(error)
+        return
+      }
+
+      setAutos(data || [])
+    }
+
+    fetchAutos()
+  }, [])
 
   return (
     <div className="container">
       <h1>Autos</h1>
 
-      <AutoForm autos={autos} setAutos={setAutos} />
+      <AutoForm />
       <AutoList autos={autos} setAutos={setAutos} />
     </div>
   )

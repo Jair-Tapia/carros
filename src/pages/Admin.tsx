@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
 import AutoForm from "../components/AutoForm"
 import AutoList from "../components/AutoList"
-import { getAutos, saveAutos } from "../services/localStorage"
 import Header from "../components/Header"
+import { supabase } from "../services/supabase"
 import "../styles.css"
 
 type Auto = {
@@ -11,35 +11,39 @@ type Auto = {
   modelo: string
   imagen: string
   descripcion: string
-precio: number | ""  
-ubicacion: string
+  precio: number | ""
+  ubicacion: string
   publicacion: string
 }
 
 function Admin() {
   const [autos, setAutos] = useState<Auto[]>([])
-  const [loaded, setLoaded] = useState(false)
 
-  // 🔥 1. Cargar datos primero
+  // 🔥 CARGAR desde base de datos
   useEffect(() => {
-    const data = getAutos()
-    setAutos(data)
-    setLoaded(true)
-  }, [])
+    const fetchAutos = async () => {
+      const { data, error } = await supabase
+        .from("autos")
+        .select("*")
 
-  // 🔥 2. Guardar SOLO después de cargar
-  useEffect(() => {
-    if (loaded) {
-      saveAutos(autos)
+      if (error) {
+        console.log(error)
+        return
+      }
+
+      setAutos(data || [])
     }
-  }, [autos, loaded])
+
+    fetchAutos()
+  }, [])
 
   return (
     <div className="container">
       <Header />
 
       <h1>Panel Admin</h1>
-      <AutoForm autos={autos} setAutos={setAutos} />
+
+      <AutoForm/>
       <AutoList autos={autos} setAutos={setAutos} />
     </div>
   )

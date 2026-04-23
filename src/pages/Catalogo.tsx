@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react"
-import { useLocation } from "react-router-dom"
-import { getAutos } from "../services/localStorage"
 import AutoItem from "../components/AutoItem"
 import { categorias } from "../data/categorias"
 import Header from "../components/Header"
 import AutoModal from "../components/AutoModal"
 import "../styles.css"
+import { supabase } from "../services/supabase"
 
 type Auto = {
     id: number
@@ -22,13 +21,24 @@ function Catalogo() {
     const [autos, setAutos] = useState<Auto[]>([])
     const [categoria, setCategoria] = useState<string>("")
     const [autoSeleccionado, setAutoSeleccionado] = useState<Auto | null>(null)
-    const location = useLocation()
 
     // 🔥 Cargar datos cada vez que cambias de página
-    useEffect(() => {
-        const data = getAutos()
-        setAutos(data)
-    }, [location])
+useEffect(() => {
+    const fetchAutos = async () => {
+        const { data, error } = await supabase
+            .from("autos")
+            .select("*")
+
+        if (error) {
+            console.log(error)
+            return
+        }
+
+        setAutos(data || [])
+    }
+
+    fetchAutos()
+}, [])
 
     const autosFiltrados = categoria
         ? autos.filter(a => a.marca === categoria)

@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { categorias } from "../data/categorias"
 import "../styles.css"
+import { supabase } from "../services/supabase"
 
 type Auto = {
   id: number
@@ -13,12 +14,7 @@ type Auto = {
   publicacion: string
 }
 
-type Props = {
-  autos: Auto[]
-  setAutos: React.Dispatch<React.SetStateAction<Auto[]>>
-}
-
-function AutoForm({ autos, setAutos }: Props) {
+function AutoForm() {
 
   const [form, setForm] = useState<Omit<Auto, "id">>({
     marca: "",
@@ -43,26 +39,36 @@ function AutoForm({ autos, setAutos }: Props) {
     })
   }
 
-  const agregarAuto = () => {
-    if (!form.marca || !form.modelo) return
+const agregarAuto = async () => {
+  if (!form.marca || !form.modelo) return
 
-    const nuevo: Auto = {
-      id: Date.now(),
-      ...form
-    }
-
-    setAutos([...autos, nuevo])
-
-    setForm({
-      marca: "",
-      modelo: "",
-      imagen: "",
-      descripcion: "", // 👈 reset
-      precio: 0,
-      ubicacion: "",
-      publicacion: ""
-    })
+  const nuevo = {
+    marca: form.marca,
+    modelo: form.modelo,
+    imagen: form.imagen,
+    descripcion: form.descripcion,
+    precio: form.precio,
+    ubicacion: form.ubicacion,
+    publicacion: form.publicacion
   }
+
+  const { error } = await supabase.from("autos").insert([nuevo])
+
+  if (error) {
+    console.log("Error al guardar:", error)
+    return
+  }
+
+  setForm({
+    marca: "",
+    modelo: "",
+    imagen: "",
+    descripcion: "",
+    precio: "",
+    ubicacion: "",
+    publicacion: ""
+  })
+}
 
   return (
     <div className="form">
